@@ -14,6 +14,7 @@ import laspy
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+from scipy.interpolate import make_interp_spline
 
 def import_lidar_las(filename: str) -> pd.DataFrame:
     """Load lidar (.las) point data in UTM coordinates.
@@ -149,79 +150,119 @@ def plot_x_depth_transects(
         is_transect = df.transect_id == transect_id
         transect_df = df.loc[is_transect, :]
         plt.plot(transect_df.rotated_x, transect_df.elevation_m)
+       
 
     plt.axline(xy1 = (0, regression_intercept), xy2 = None, slope = regression_slope, color = 'black' )
     plt.grid()
     plt.savefig(export_filename, dpi = 300)
     plt.close()
 
-#___________________________________________________
+#_____________________________________________________
+#_____________________________________________________l
 
-df = import_lidar_las('Data/ca2014_usace_ncmp_ca_Job821632/ca2014_usace_ncmp_ca_Job821632.las')
+#####################################################################
+
+
+df = import_lidar_las('/Users/rdchlcap/repos/beachslopes/data/pendleton/ca2014_usace_ncmp_ca_Job821632/ca2014_usace_ncmp_ca_Job821632.las')
 df = transform_coordinates(df, new_origin_north=3678000, new_origin_east=460000 + 500, theta_deg=35)
 
-# ACTB Beach
-df_actb = build_transects(df, y_min=6520, y_max=7200, y_transect_width=1, y_transect_gap=100)
+plot_avtb = False
+plot_red = False
+plot_noname = True
+if plot_avtb:
+    # ACTB Beach
+    df_actb = build_transects(df, y_min=6520, y_max=7200, y_transect_width=1, y_transect_gap=100)
 
-is_beach = (df_actb.rotated_x < 65) & (df_actb.rotated_x > -100)
-is_surf = (df_actb.rotated_x < 10) & (df_actb.rotated_x > -800)
-beach = df_actb.loc[is_beach,:]
-surf = df_actb.loc[is_surf, :]
+    is_beach = (df_actb.rotated_x < 65) & (df_actb.rotated_x > -100)
+    is_surf = (df_actb.rotated_x < 10) & (df_actb.rotated_x > -800)
+    beach = df_actb.loc[is_beach,:]
+    surf = df_actb.loc[is_surf, :]
 
-beach_slope, beach_intercept, r, p, se = linregress(beach.rotated_x, beach.elevation_m)
-surf_slope, surf_intercept, r, p, se = linregress(surf.rotated_x, surf.elevation_m)
+    beach_slope, beach_intercept, r, p, se = linregress(beach.rotated_x, beach.elevation_m)
+    surf_slope, surf_intercept, r, p, se = linregress(surf.rotated_x, surf.elevation_m)
 
-plot_x_depth_transects(
-    df=df_actb,
-    title="Camp Pendleton AVTB Beach cross-shore Beach transects",
-    regression_slope = beach_slope,
-    regression_intercept = beach_intercept,
-    xlim=[-150, 100],
-    ylim=[-5, 6], 
-    export_filename='figures/newpendleton_beachTransects_AVTB'
-)
+    plot_x_depth_transects(
+        df=df_actb,
+        title="Camp Pendleton AVTB Beach cross-shore Beach transects",
+        regression_slope = beach_slope,
+        regression_intercept = beach_intercept,
+        xlim=[-150, 100],
+        ylim=[-5, 6], 
+        export_filename='/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/newpendleton_beachTransects_AVTB'
+    )
 
-plot_x_depth_transects(
-    df=df_actb,
-    title="Camp Pendleton AVTB Beach cross-shore surf-zone transects",
-    regression_slope = surf_slope,
-    regression_intercept = surf_intercept,
-    xlim=[-800, 50],
-    ylim=[-12, 4], 
-    export_filename='figures/newpendleton_surfzoneTransects_AVTB'
-)
+    plot_x_depth_transects(
+        df=df_actb,
+        title="Camp Pendleton AVTB Beach cross-shore surf-zone transects",
+        regression_slope = surf_slope,
+        regression_intercept = surf_intercept,
+        xlim=[-800, 50],
+        ylim=[-12, 4], 
+        export_filename='/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/newpendleton_surfzoneTransects_AVTB'
+    )
+if plot_red:
+    # Red Beach
+    df_red = build_transects(df,y_min = 5100, y_max = 5500, y_transect_width=1, y_transect_gap= 50)
 
-# Red Beach
-df_red = build_transects(df,y_min = 5100, y_max = 5500, y_transect_width=1, y_transect_gap= 50)
+    is_beach = (df_red.rotated_x < 65) & (df_red.rotated_x > -100)
+    is_surf = (df_red.rotated_x < 10) & (df_red.rotated_x > -800)
+    beach = df_red.loc[is_beach,:]
+    surf = df_red.loc[is_surf, :]
 
-is_beach = (df_red.rotated_x < 65) & (df_red.rotated_x > -100)
-is_surf = (df_red.rotated_x < 10) & (df_red.rotated_x > -800)
-beach = df_red.loc[is_beach,:]
-surf = df_red.loc[is_surf, :]
+    beach_slope, beach_intercept, r, p, se = linregress(beach.rotated_x, beach.elevation_m)
+    surf_slope, surf_intercept, r, p, se = linregress(surf.rotated_x, surf.elevation_m)
 
-beach_slope, beach_intercept, r, p, se = linregress(beach.rotated_x, beach.elevation_m)
-surf_slope, surf_intercept, r, p, se = linregress(surf.rotated_x, surf.elevation_m)
+    plot_x_depth_transects(
+        df=df_red,
+        title="Camp Pendleton Red Beach cross-shore Beach transects",
+        regression_slope=beach_slope,
+        regression_intercept=beach_intercept,
+        xlim=[-150, 100],
+        ylim=[-5, 6], 
+        export_filename='/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/newpendleton_beachTransects_red'
+    )
 
-plot_x_depth_transects(
-    df=df_red,
-    title="Camp Pendleton Red Beach cross-shore Beach transects",
-    regression_slope=beach_slope,
-    regression_intercept=beach_intercept,
-    xlim=[-150, 100],
-    ylim=[-5, 6], 
-    export_filename='figures/newpendleton_beachTransects_red'
-)
+    plot_x_depth_transects(
+        df=df_red,
+        title="Camp Pendleton Red Beach cross-shore surf-zone transects",
+        regression_slope=surf_slope,
+        regression_intercept=surf_intercept,
+        xlim=[-800, 50],
+        ylim=[-12, 4], 
+        export_filename='/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/newpendleton_surfTransects_red'
+    )
+if plot_noname:
+    # Northern beach by 7000-7500 where there aren't data gaps
+    df_red = build_transects(df,y_min = 7100, y_max = 7400, y_transect_width=1, y_transect_gap= 50)
 
-plot_x_depth_transects(
-    df=df_red,
-    title="Camp Pendleton Red Beach cross-shore surf-zone transects",
-    regression_slope=surf_slope,
-    regression_intercept=surf_intercept,
-    xlim=[-800, 50],
-    ylim=[-12, 4], 
-    export_filename='figures/newpendleton_surfTransects_red'
-)
+    is_beach = (df_red.rotated_x < 65) & (df_red.rotated_x > -100)
+    is_surf = (df_red.rotated_x < 10) & (df_red.rotated_x > -800)
+    beach = df_red.loc[is_beach,:]
+    surf = df_red.loc[is_surf, :]
 
+    beach_slope, beach_intercept, r, p, se = linregress(beach.rotated_x, beach.elevation_m)
+    surf_slope, surf_intercept, r, p, se = linregress(surf.rotated_x, surf.elevation_m)
+
+    plot_x_depth_transects(
+        df=df_red,
+        title="Camp Pendleton no name Beach cross-shore Beach transects",
+        regression_slope=beach_slope,
+        regression_intercept=beach_intercept,
+        xlim=[-150, 100],
+        ylim=[-5, 6], 
+        export_filename='/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/Pendleton_beachTransects_noname2'
+    )
+
+    plot_x_depth_transects(
+        df=df_red,
+        title="Camp Pendleton Red Beach cross-shore surf-zone transects",
+        regression_slope=surf_slope,
+        regression_intercept=surf_intercept,
+        xlim=[-1200, 500],
+        ylim=[-12, 20], 
+        export_filename='/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/Pendleton_surfTransects_noname2'
+    )
+print('done plotting')
 #_______________________________________________________________________________
 # Plots to check data along the way:
 
@@ -255,7 +296,7 @@ plt.xlabel('Rotated coords Cross-shore (m)')
 plt.ylabel('Rotated coords Along-shore (m)')
 # plt.grid()
 #plt.show()
-plt.savefig('figures/AVTB_beach_lidarpts', dpi = 300)
+plt.savefig('/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/AVTB_beach_lidarpts', dpi = 300)
 
 
 # RED BEACH ________________
@@ -277,7 +318,7 @@ plt.xlabel('Rotated coords Cross-shore (m)')
 plt.ylabel('Rotated coords Along-shore (m)')
 # plt.grid()
 #plt.show()
-plt.savefig('figures/Red_beach_lidarpts', dpi = 300)
+plt.savefig('/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/Red_beach_lidarpts', dpi = 300)
 
 # ALLL THE BEACH ________________
 section = df.loc[(df.rotated_y > 4000 ) & (df.rotated_y < 8000 ) ]
@@ -296,7 +337,7 @@ plt.xlabel('Rotated coords Cross-shore (m)')
 plt.ylabel('Rotated coords Along-shore (m)')
 # plt.grid()
 #plt.show()
-plt.savefig('figures/newALL_beach_lidarpts', dpi = 300)
+plt.savefig('/Users/rdchlcap/repos/beachslopes/figures/pendletonfig/newALL_beach_lidarpts', dpi = 300)
 
 
 
